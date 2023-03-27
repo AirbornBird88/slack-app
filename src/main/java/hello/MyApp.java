@@ -19,30 +19,45 @@ import java.time.format.DateTimeFormatter;
 
 
 public class MyApp {
-    private static final String ZOHO_OAUTHTOKEN = "1000.043b3a05c6e86a7da5a8a71377334a49.cb0111ad2f78ec0355bf648b38ed81d1";
+    /**
+     * Having some credentials here to experiment with authorization.
+     * Of course credentials should not be "hard-coded", but at least should be used
+     * in the code as environment variables.I am going to use this approach for convenience.
+     * <p>
+     * But to further increase security, credentials should be encrypted and stored in good password manager
+     * (inside the password database) and using password manager API to retrieve the credentials
+     * from the database.
+     */
+    // Now lets retrieve credentials for ZOHO PROJECTS API, so we can use it.
+    private static final String ZOHO_OAUTHTOKEN = System.getenv("ZOHO_OAUTHTOKEN");
 
     public static void main(String[] args) throws Exception {
         // App expects env variables (SLACK_BOT_TOKEN, SLACK_SIGNING_SECRET)
         App app = new App();
 
-        /**
-         * Trying to create a custom command (e.g. say hello to channel)
-         */
-        app.command("/greetings", (req, ctx) -> {
-            return ctx.ack(":wave: Hello!");
-        });
+        //Trying to create and play with a custom command (e.g. say hello to channel)
+        app.command("/greetings", (req, ctx) -> ctx.ack(":wave: Hello!"));
 
-
+        //Initialize timestamp
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("MM-dd-uuuu");
         LocalDate localDate = LocalDate.now();
         String date =  dtf.format(localDate);
 
-        //start zoho
+        /**
+         * Start zoho API request (REST API)
+         * In this case we are trying to connect to ZOHO PROJECT portal of particular company.
+         * From there we want to retrieve all users (company employee) monthly timesheets.
+         * To be more specific, we want to summarize work time of employees in the last month.
+         * Or in other words how many hours each employee worked in the last month.
+         * <p>
+         * For more information on how to create this request, see ZOHO REST API documentation
+         */
+
         URL url;
         HttpURLConnection request = null;
         String method = "GET";
-        String parameters = "";
-        String path = "";
+        String parameters;
+        String path;
         String toInsert = "";
         try {
             /*
@@ -102,9 +117,7 @@ public class MyApp {
         }
 
         String finalToInsert = toInsert;
-        app.command("/timelog", (req, ctx) -> {
-            return ctx.ack(finalToInsert);
-        });
+        app.command("/timelog", (req, ctx) -> ctx.ack(finalToInsert));
 
         Slack slack = Slack.getInstance();
 
