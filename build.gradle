@@ -1,0 +1,38 @@
+plugins {
+    id("application")
+}
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation("com.slack.api:bolt:1.21.2")
+    implementation("com.slack.api:bolt-servlet:1.21.2")
+    implementation("com.slack.api:bolt-jetty:1.21.2")
+    implementation("org.slf4j:slf4j-simple:1.7.33")
+    implementation 'com.googlecode.json-simple:json-simple:1.1.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+}
+
+application {
+    mainClassName = "hello.MyApp"
+}
+
+run {
+    // gradle run -DslackLogLevel=debug
+    systemProperty "org.slf4j.simpleLogger.log.com.slack.api", System.getProperty("slackLogLevel")
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+test {
+    useJUnitPlatform()
+}
