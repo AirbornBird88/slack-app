@@ -1,4 +1,4 @@
-package hello;
+package function;
 
 import com.slack.api.Slack;
 import com.slack.api.bolt.App;
@@ -36,7 +36,7 @@ public class MyApp {
         // App expects env variables (SLACK_BOT_TOKEN, SLACK_SIGNING_SECRET)
         App app = new App();
 
-        //Trying to create and play with a custom command (e.g. say hello to channel)
+        //Trying to create and play with a custom command (e.g. say function to channel)
         app.command("/greetings", (req, ctx) -> ctx.ack(":wave: Hello!"));
 
         //Initialize timestamp
