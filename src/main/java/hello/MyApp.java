@@ -30,6 +30,7 @@ public class MyApp {
      */
     // Now lets retrieve credentials for ZOHO PROJECTS API, so we can use it.
     private static final String ZOHO_OAUTHTOKEN = System.getenv("ZOHO_OAUTHTOKEN");
+    private static final String PORTAL_ID= System.getenv("PORTAL_ID");
 
     public static void main(String[] args) throws Exception {
         // App expects env variables (SLACK_BOT_TOKEN, SLACK_SIGNING_SECRET)
@@ -59,6 +60,7 @@ public class MyApp {
         String parameters;
         String path;
         String toInsert = "";
+
         try {
             /*
              * Set the URL and Parameters to create connection
@@ -66,8 +68,9 @@ public class MyApp {
              */
             if("GET".equals(method))
             {
-                parameters = "users_list=765698152&view_type=month&date=" + date + "&bill_status=All&component_type=task";
-                path = "/portal/684142557/projects/1401927000000053229/logs/?";
+                //variables below should not also be hardcoded
+                parameters = "users_list=7656874152&view_type=month&date=" + date + "&bill_status=All&component_type=task";
+                path = "/portal/" + PORTAL_ID + "/projects/1487937000000053229/logs/?";
                 url = new URL("https://projectsapi.zoho.com/restapi" + path + parameters);
                 request = (HttpURLConnection) url.openConnection();
                 request.setRequestMethod("GET");
@@ -99,7 +102,7 @@ public class MyApp {
             String grandTotal = (String) timelogsObject.get("grandtotal");
             String billableHours = (String) timelogsObject.get("billable_hours");
             String nonBillableHours = (String) timelogsObject.get("non_billable_hours");
-            String toConcatenate = "Do Viet Anh" + "\n" + "Celkový čas:" + " " + grandTotal +  "\n" + "Billable hours:" + " " + billableHours + "\n" + "Non Billable hours:" + " " + nonBillableHours;
+            String toConcatenate = "Do Viet Anh" + "\n" + "Total hours:" + " " + grandTotal +  "\n" + "Billable hours:" + " " + billableHours + "\n" + "Non Billable hours:" + " " + nonBillableHours;
 
             ByteBuffer buffer = StandardCharsets.UTF_8.encode(toConcatenate);
             toInsert = StandardCharsets.UTF_8.decode(buffer).toString();
@@ -116,18 +119,28 @@ public class MyApp {
             }
         }
 
+        // create a custom command that will send summarization of working hours to channel
         String finalToInsert = toInsert;
         app.command("/timelog", (req, ctx) -> ctx.ack(finalToInsert));
 
+        // we can also for example use webhooks that will automatically send our data to a channel by
+        // "listening" to a certain events. This could be quite practical in situation where we work with
+        // cron jobs for example. (Use case: "At the end of every month cron ensures that webhook
+        // sends a message to the channel and so on.")
         Slack slack = Slack.getInstance();
 
-        String webhookUrl = "https://hooks.slack.com/services/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";
+        // try to use Slack webhook to forward the message (summarization of working ours) to project/task channel
+        String webhookUrl = "https://hooks.slack.com/services/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WMi";
         //String webhookUrl = System.getenv("SLACK_WEBHOOK_URL");
         Payload payload = Payload.builder().text(toInsert).build();
 
         WebhookResponse response = slack.send(webhookUrl, payload);
         System.out.println(response); // WebhookResponse(code=200, message=OK, body=ok)
 
+
+        //initiate instance of Slack App server to start listen to events
+        //it is possible to host our Slack integrations and apps on some cloud infrastructure
+        //provided by various hosting providers (AWS, Google Cloud, MS Azure, ...)
         SlackAppServer server = new SlackAppServer(app);
         server.start(); // http://localhost:3000/slack/events
     }
